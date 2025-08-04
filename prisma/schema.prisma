@@ -1,0 +1,162 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  role             Role
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  phone            String?
+  emergencyContact String?  @map("emergency_contact")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  medications        Medication[]
+  createdMedications Medication[]        @relation("CreatedBy")
+  confirmations      Confirmation[]
+  caregiverRelations CaregiverRelation[] @relation("Caregiver")
+  seniorRelations    CaregiverRelation[] @relation("Senior")
+  passwordResets     PasswordReset[]
+
+  @@map("users")
+}
+
+model Medication {
+  id                   String   @id @default(cuid())
+  userId               String   @map("user_id")
+  name                 String
+  dosage               String
+  instructions         String?
+  prescriptionImageUrl String?  @map("prescription_image_url")
+  createdBy            String   @map("created_by")
+  isActive             Boolean  @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  creator   User       @relation("CreatedBy", fields: [createdBy], references: [id])
+  schedules Schedule[]
+
+  @@map("medications")
+}
+
+model Schedule {
+  id           String    @id @default(cuid())
+  medicationId String    @map("medication_id")
+  time         String // Store as "HH:MM" format
+  frequency    Frequency
+  daysOfWeek   Int[]     @map("days_of_week") // [1,2,3,4,5,6,7] for custom
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  medication    Medication     @relation(fields: [medicationId], references: [id], onDelete: Cascade)
+  confirmations Confirmation[]
+
+  @@map("schedules")
+}
+
+model Confirmation {
+  id            String              @id @default(cuid())
+  scheduleId    String              @map("schedule_id")
+  userId        String              @map("user_id")
+  scheduledTime DateTime            @map("scheduled_time")
+  confirmedAt   DateTime?           @map("confirmed_at")
+  method        ConfirmationMethod?
+  notes         String?
+  createdAt     DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@map("confirmations")
+}
+
+model CaregiverRelation {
+  id           String   @id @default(cuid())
+  caregiverId  String   @map("caregiver_id")
+  seniorId     String   @map("senior_id")
+  relationship String // "family", "professional", "friend"
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  caregiver User @relation("Caregiver", fields: [caregiverId], references: [id])
+  senior    User @relation("Senior", fields: [seniorId], references: [id])
+
+  @@unique([caregiverId, seniorId])
+  @@map("caregiver_relations")
+}
+
+model BuzzerLog {
+  id          String          @id @default(cuid())
+  userId      String          @map("user_id")
+  triggeredBy String?         @map("triggered_by") // caregiver who triggered manually
+  triggeredAt DateTime        @default(now()) @map("triggered_at")
+  stoppedAt   DateTime?       @map("stopped_at")
+  intensity   BuzzerIntensity
+  reason      String? // "medication_reminder", "manual_trigger", "emergency"
+
+  @@map("buzzer_logs")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  email     String
+  otp       String
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_resets")
+}
+
+// Enums
+enum Role {
+  SENIOR
+  CAREGIVER
+  ADMIN
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  CUSTOM
+}
+
+enum ConfirmationMethod {
+  APP
+  SMS
+  VOICE
+  BUZZER
+}
+
+enum BuzzerIntensity {
+  LOW
+  MEDIUM
+  HIGH
+  EMERGENCY
+}
