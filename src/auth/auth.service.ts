@@ -151,7 +151,6 @@ export class AuthService {
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string; success: boolean }> {
     const user = req.user as User;
-    console.log("🚀 ~ AuthService ~ changePassword ~ user:", user)
     try {
       const { oldPassword, newPassword } = changePasswordDto;
 
