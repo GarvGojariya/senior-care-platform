@@ -33,6 +33,8 @@ model User {
   caregiverRelations CaregiverRelation[] @relation("Caregiver")
   seniorRelations    CaregiverRelation[] @relation("Senior")
   passwordResets     PasswordReset[]
+  buzzerLogs         BuzzerLog[]
+  triggeredBuzzerLogs BuzzerLog[]        @relation("TriggeredBy")
 
   @@map("users")
 }
@@ -54,23 +56,32 @@ model Medication {
   creator   User       @relation("CreatedBy", fields: [createdBy], references: [id])
   schedules Schedule[]
 
+  @@index([userId, isActive])
+  @@index([createdBy, isActive])
   @@map("medications")
 }
 
 model Schedule {
-  id           String    @id @default(cuid())
-  medicationId String    @map("medication_id")
-  time         String // Store as "HH:MM" format
-  frequency    Frequency
-  daysOfWeek   Int[]     @map("days_of_week") // [1,2,3,4,5,6,7] for custom
-  isActive     Boolean   @default(true) @map("is_active")
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  id                    String    @id @default(cuid())
+  medicationId          String    @map("medication_id")
+  time                  String    // Store as "HH:MM" format (legacy field)
+  frequency             Frequency
+  daysOfWeek            DaysOfWeek[] @map("days_of_week")
+  isActive              Boolean   @default(true) @map("is_active")
+  description           String?
+  reminderType          String?   @map("reminder_type") // "notification", "sms", "voice", "buzzer"
+  reminderMinutesBefore Int?      @map("reminder_minutes_before") @default(15)
+  doseTimes             Json?     @map("dose_times") // Array of dose times with labels
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
 
   // Relations
   medication    Medication     @relation(fields: [medicationId], references: [id], onDelete: Cascade)
   confirmations Confirmation[]
 
+  @@index([medicationId, isActive])
+  @@index([frequency, isActive])
+  @@index([reminderType, isActive])
   @@map("schedules")
 }
 
@@ -88,6 +99,8 @@ model Confirmation {
   schedule Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   user     User     @relation(fields: [userId], references: [id])
 
+  @@index([userId, scheduledTime])
+  @@index([scheduleId, scheduledTime])
   @@map("confirmations")
 }
 
@@ -104,6 +117,8 @@ model CaregiverRelation {
   senior    User @relation("Senior", fields: [seniorId], references: [id])
 
   @@unique([caregiverId, seniorId])
+  @@index([caregiverId, isActive])
+  @@index([seniorId, isActive])
   @@map("caregiver_relations")
 }
 
@@ -116,6 +131,11 @@ model BuzzerLog {
   intensity   BuzzerIntensity
   reason      String? // "medication_reminder", "manual_trigger", "emergency"
 
+  // Relations
+  user            User  @relation(fields: [userId], references: [id])
+  triggeredByUser User? @relation("TriggeredBy", fields: [triggeredBy], references: [id])
+
+  @@index([userId, triggeredAt])
   @@map("buzzer_logs")
 }
 
@@ -142,9 +162,10 @@ enum Role {
 }
 
 enum Frequency {
-  DAILY
-  WEEKLY
-  CUSTOM
+  ONCE
+  TWICE
+  THREE_TIMES
+  FOUR_TIMES
 }
 
 enum ConfirmationMethod {
@@ -159,4 +180,14 @@ enum BuzzerIntensity {
   MEDIUM
   HIGH
   EMERGENCY
+}
+
+enum DaysOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
 }

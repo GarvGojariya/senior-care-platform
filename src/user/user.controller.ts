@@ -14,7 +14,10 @@ import { Role, User } from 'generated/prisma';
 import { CreateCaregiverRelationDto, UpdateUserDto } from './dto/user.dto';
 import { AuthenticatedRequest, AuthGuard } from 'src/guard/auth.guard';
 import { Roles } from 'src/decorators/roles.decorators';
-import { ResourceOwnershipGuard, ResourceOwnership } from 'src/guard/resource-ownership.guard';
+import {
+  ResourceOwnershipGuard,
+  ResourceOwnership,
+} from 'src/guard/resource-ownership.guard';
 
 @UseGuards(AuthGuard)
 @Controller('user')
@@ -33,10 +36,36 @@ export class UserController {
     @Req() req: AuthenticatedRequest,
     @Body() createCaregiverRelationDto: CreateCaregiverRelationDto,
   ): Promise<{ message: string; success: boolean }> {
-    return this.userService.createSeniorOfCaregiver(
+    const res = await this.userService.createSeniorOfCaregiver(
       req.user.id,
       createCaregiverRelationDto,
     );
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
+  }
+
+  @Get('caregiver/seniors')
+  @Roles(Role.CAREGIVER)
+  async getSeniorsOfCaregiver(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<{
+    message: string;
+    data: Array<{
+      senior: Omit<User, 'passwordHash'>;
+      relationship: string;
+    }>;
+    success: boolean;
+  }> {
+    const seniors = await this.userService.getSeniorsOfCaregiver(req.user.id);
+
+    return {
+      message: 'Seniors fetched successfully',
+      data: seniors,
+      success: true,
+    };
   }
 
   @Get(':id')
@@ -44,8 +73,18 @@ export class UserController {
   @ResourceOwnership()
   async getUser(
     @Param('id') id: string,
-  ): Promise<Omit<User, 'passwordHash'>> {
-    return this.userService.getUser(id);
+  ): Promise<{
+    message: string;
+    data: Omit<User, 'passwordHash'>;
+    success: boolean;
+  }> {
+    const res = await this.userService.getUser(id);
+
+    return {
+      message: 'User fetched successfully',
+      data: res,
+      success: true,
+    };
   }
 
   @Put(':id')
@@ -54,8 +93,18 @@ export class UserController {
   async updateUser(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<Omit<User, 'passwordHash'>> {
-    return this.userService.updateUser(id, updateUserDto);
+  ): Promise<{
+    message: string;
+    data: Omit<User, 'passwordHash'>;
+    success: boolean;
+  }> {
+    const res = await this.userService.updateUser(id, updateUserDto);
+
+    return {
+      message: 'User updated successfully',
+      data: res,
+      success: true,
+    };
   }
 
   @Delete(':id')
@@ -64,6 +113,11 @@ export class UserController {
   async deleteUser(
     @Param('id') id: string,
   ): Promise<{ message: string; success: boolean }> {
-    return this.userService.deleteUser(id);
+    const res = await this.userService.deleteUser(id);
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
   }
 }

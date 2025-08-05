@@ -19,13 +19,28 @@ export class AuthController {
   async registerCaregiver(
     @Body() registerCaregiverDto: RegisterCaregiverDto,
   ): Promise<{ message: string; success: boolean }> {
-    return this.authService.registerCaregiver(registerCaregiverDto);
+    const res = await this.authService.registerCaregiver(registerCaregiverDto);
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
   }
 
   @Public()
   @Post('login')
-  async login(@Body() loginDto: LoginDto): Promise<LoginResponseDto> {
-    return this.authService.login(loginDto);
+  async login(@Body() loginDto: LoginDto): Promise<{
+    message: string;
+    data: LoginResponseDto;
+    success: boolean;
+  }> {
+    const res = await this.authService.login(loginDto);
+
+    return {
+      message: 'Login successful',
+      data: res,
+      success: true,
+    };
   }
 
   @UseGuards(AuthGuard)
@@ -34,13 +49,26 @@ export class AuthController {
     @Req() req: AuthenticatedRequest,
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string; success: boolean }> {
-    return this.authService.changePassword(req, changePasswordDto);
+    const res = await this.authService.changePassword(req, changePasswordDto);
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
   }
 
   @UseGuards(AuthGuard)
   @Post('refresh-token')
-  async refreshToken(@Body() refreshToken: string): Promise<LoginResponseDto> {
-    return this.authService.refreshToken(refreshToken);
+  async refreshToken(
+    @Body() refreshToken: string,
+  ): Promise<{ message: string; data: LoginResponseDto; success: boolean }> {
+    const res = await this.authService.refreshToken(refreshToken);
+
+    return {
+      message: 'Token refreshed successfully',
+      data: res,
+      success: true,
+    };
   }
 
   @Public()
@@ -48,7 +76,12 @@ export class AuthController {
   async forgotPassword(
     @Body() forgotPasswordDto: ForgotPasswordDto,
   ): Promise<{ message: string; success: boolean }> {
-    return this.authService.forgotPassword(forgotPasswordDto);
+    const res = await this.authService.forgotPassword(forgotPasswordDto);
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
   }
 
   @Public()
@@ -56,6 +89,11 @@ export class AuthController {
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
   ): Promise<{ message: string; success: boolean }> {
-    return this.authService.resetPassword(resetPasswordDto);
+    const res = await this.authService.resetPassword(resetPasswordDto);
+
+    return {
+      message: res.message,
+      success: res.success,
+    };
   }
 }

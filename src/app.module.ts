@@ -10,6 +10,8 @@ import { AuthGuard } from './guard/auth.guard';
 import { ResourceOwnershipGuard } from './guard/resource-ownership.guard';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './user/user.module';
+import { MedicationsModule } from './medications/medications.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
   imports: [
@@ -32,6 +34,8 @@ import { UserModule } from './user/user.module';
       inject: [ConfigService],
     }),
     UserModule,
+    MedicationsModule,
+    SchedulesModule,
   ],
   controllers: [AppController],
   providers: [

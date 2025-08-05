@@ -14,6 +14,7 @@ export class ResponseInterceptor<T> implements NestInterceptor<T, any> {
 
         return {
           status: 'success',
+          success: true,
           message: message || 'Request successful',
           timestamp: new Date().toISOString(),
           data,

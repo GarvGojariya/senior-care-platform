@@ -1,0 +1,978 @@
+{
+	"info": {
+		"_postman_id": "057b2d92-cecd-4dda-a645-8d56c08f8a18",
+		"name": "Senior Care Platform API",
+		"description": "Complete API collection for the Senior Care Platform NestJS application with actual implemented endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "46242411"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "Get Hello",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Basic health check endpoint"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Caregiver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"caregiver1@yopmail.com\",\n  \"password\": \"User@123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"+1234567890\",\n  \"emergencyContact\": \"+0987654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register-caregiver",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"register-caregiver"
+							]
+						},
+						"description": "Register a new caregiver account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+									"    pm.collectionVariables.set('userId', response.data.user.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"sarah.caregiver@yopmail.com\",\n  \"password\": \"caregiver123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login with email and password. Automatically sets access and refresh tokens."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/change-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"change-password"
+							]
+						},
+						"description": "Change user password (requires authentication)"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', response.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "\"{{refreshToken}}\""
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						},
+						"description": "Refresh access token using refresh token. Automatically updates tokens."
+					},
+					"response": []
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"caregiver@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/forgot-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"forgot-password"
+							]
+						},
+						"description": "Request password reset OTP via email"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"caregiver@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"newpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"auth",
+								"reset-password"
+							]
+						},
+						"description": "Reset password using OTP received via email"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users (Admin Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user"
+							]
+						},
+						"description": "Get all users (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Senior for Caregiver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"senior1@yopmail.com\",\n  \"password\": \"User@123\",\n  \"firstName\": \"Mary\",\n  \"lastName\": \"Smith\",\n  \"emergencyContact\": \"+0987654322\",\n  \"relationship\": \"father\",\n  \"phone\":\"+1234567898\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/caregiver/create-senior",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"caregiver",
+								"create-senior"
+							]
+						},
+						"description": "Create a senior account linked to the authenticated caregiver"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"{{userId}}"
+							]
+						},
+						"description": "Get specific user details by ID (resource ownership required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"John Updated\",\n  \"lastName\": \"Doe Updated\",\n  \"phone\": \"+1234567890\",\n  \"emergencyContact\": \"+0987654321\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/user/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"{{userId}}"
+							]
+						},
+						"description": "Update user information (resource ownership required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/user/{{userId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"{{userId}}"
+							]
+						},
+						"description": "Delete user account (resource ownership required)"
+					},
+					"response": []
+				},
+				{
+					"name": "get seniors of caregiver",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer YOUR_JWT_TOKEN_HERE"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/user/caregiver/seniors",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"user",
+								"caregiver",
+								"seniors"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Medications",
+			"item": [
+				{
+					"name": "Add Medication",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('medicationId', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aspirin\",\n  \"dosage\": \"100mg\",\n  \"frequency\": \"daily\",\n  \"instructions\": \"Take with food\",\n  \"startDate\": \"2024-01-01\",\n  \"endDate\": \"2024-12-31\",\n  \"isActive\": true,\n  \"seniorId\": \"senior-user-id\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/medications",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications"
+							]
+						},
+						"description": "Add a new medication for a senior"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Medications",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/medications?page=1&limit=10&search=aspirin&sort=asc&sortBy=name&isActive=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "aspirin"
+								},
+								{
+									"key": "sort",
+									"value": "asc"
+								},
+								{
+									"key": "sortBy",
+									"value": "name"
+								},
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get medications with filtering and pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Medication by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/medications/{{medicationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications",
+								"{{medicationId}}"
+							]
+						},
+						"description": "Get specific medication details"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Medication",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aspirin Updated\",\n  \"dosage\": \"150mg\",\n  \"instructions\": \"Take with food, avoid alcohol\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/medications/{{medicationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications",
+								"{{medicationId}}"
+							]
+						},
+						"description": "Update medication details"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Medication",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/medications/{{medicationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications",
+								"{{medicationId}}"
+							]
+						},
+						"description": "Delete a medication"
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Medication Status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/medications/{{medicationId}}/toggle",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications",
+								"{{medicationId}}",
+								"toggle"
+							]
+						},
+						"description": "Toggle medication active/inactive status"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Medication Schedule",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/medications/{{medicationId}}/schedule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"medications",
+								"{{medicationId}}",
+								"schedule"
+							]
+						},
+						"description": "Get schedule information for a specific medication"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Schedules",
+			"item": [
+				{
+					"name": "Create Schedule",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('scheduleId', response.data.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"medicationId\": \"{{medicationId}}\",\n    \"time\": \"09:00\",\n    \"daysOfWeek\": [\n        \"MONDAY\",\n        \"WEDNESDAY\",\n        \"FRIDAY\"\n    ],\n    \"isActive\": true,\n    \"frequency\": \"THREE_TIMES\",\n    \"doseTimes\": [\n        {\n            \"time\": \"18:25\",\n            \"label\": \"test\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/schedules",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules"
+							]
+						},
+						"description": "Create a new medication schedule (Caregiver/Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Bulk Schedules",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"medicationId\": \"{{medicationId}}\",\n    \"schedules\": [\n        {\n            \"time\": \"09:00\",\n            \"daysOfWeek\": [\n                \"MONDAY\",\n                \"WEDNESDAY\",\n                \"FRIDAY\"\n            ],\n            \"medicationId\": \"cmdy6gmm7000m43h3qgj49m36\",\n            \"frequency\": \"THREE_TIMES\",\n            \"doseTimes\": [\n                {\n                    \"time\": \"8:25\",\n                    \"label\": \"test\"\n                }\n            ]\n        },\n        {\n            \"time\": \"21:00\",\n            \"daysOfWeek\": [\n                \"MONDAY\",\n                \"WEDNESDAY\",\n                \"FRIDAY\"\n            ],\n            \"medicationId\": \"cmdy6gmm7000m43h3qgj49m36\",\n            \"frequency\": \"THREE_TIMES\",\n            \"doseTimes\": [\n                {\n                    \"time\": \"8:30\",\n                    \"label\": \"test\"\n                }\n            ]\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/schedules/bulk",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"bulk"
+							]
+						},
+						"description": "Create multiple schedules at once (Caregiver/Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedules with Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules?page=1&limit=10&seniorId={{seniorId}}&isActive=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "seniorId",
+									"value": "{{seniorId}}"
+								},
+								{
+									"key": "medicationId",
+									"value": "{{medicationId}}",
+									"disabled": true
+								},
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Get schedules with filtering and pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedule Templates",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{accessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/templates",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"templates"
+							]
+						},
+						"description": "Get available schedule templates"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Next Reminders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/reminders/{{userId}}?days=7",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"reminders",
+								"{{userId}}"
+							],
+							"query": [
+								{
+									"key": "days",
+									"value": "7"
+								}
+							]
+						},
+						"description": "Get next medication reminders for a user"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedules for Medication",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/medication/{{medicationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"medication",
+								"{{medicationId}}"
+							]
+						},
+						"description": "Get all schedules for a specific medication"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Schedule by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Get specific schedule details"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Schedule",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"time\": \"10:00\",\n  \"daysOfWeek\": [\"monday\", \"tuesday\", \"wednesday\", \"thursday\", \"friday\"],\n  \"isActive\": true,\n  \"notes\": \"Updated schedule notes\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Update schedule details (Caregiver/Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Schedule Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/{{scheduleId}}/toggle",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"{{scheduleId}}",
+								"toggle"
+							]
+						},
+						"description": "Toggle schedule active/inactive status (Caregiver/Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Schedule",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"schedules",
+								"{{scheduleId}}"
+							]
+						},
+						"description": "Delete a schedule (Caregiver/Admin role required)"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Pre-request script for common setup",
+					"console.log('Making request to: ' + pm.request.url);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Common test script",
+					"pm.test('Status code is 200, 201, or 204', function () {",
+					"    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204]);",
+					"});",
+					"",
+					"pm.test('Response has required fields', function () {",
+					"    const response = pm.response.json();",
+					"    pm.expect(response).to.have.property('message');",
+					"    pm.expect(response).to.have.property('success');",
+					"    if (response.data) {",
+					"        pm.expect(response).to.have.property('data');",
+					"    }",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "medicationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "scheduleId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seniorId",
+			"value": "cmdy6gm3n000043h3qkflsqc0",
+			"type": "default"
+		}
+	]
+}

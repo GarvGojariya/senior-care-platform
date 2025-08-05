@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 import { User } from 'generated/prisma';
 
 export class RegisterCaregiverDto {
@@ -46,7 +46,7 @@ export class LoginResponseDto {
   @IsNotEmpty()
   refreshToken: string;
 
-  @IsString()
+  @IsObject()
   @IsNotEmpty()
   user: User;
 }

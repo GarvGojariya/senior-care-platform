@@ -1,15 +1,12 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/services/prisma.service';
-import { CaregiverRelation, Role, User } from 'generated/prisma';
+import {  Role, User } from 'generated/prisma';
 import { CreateCaregiverRelationDto, UpdateUserDto } from './dto/user.dto';
 import * as bcryptjs from 'bcryptjs';
-import { AuthenticatedRequest } from 'src/guard/auth.guard';
 
 @Injectable()
 export class UserService {
@@ -104,6 +101,8 @@ export class UserService {
         lastName: data.lastName,
         passwordHash: await bcryptjs.hash(data.password, 10),
         role: Role.SENIOR,
+        phone: data.phone,
+        emergencyContact: data.emergencyContact,
       },
     });
 
@@ -119,5 +118,39 @@ export class UserService {
       message: 'Senior created successfully',
       success: true,
     };
+  }
+
+  async getSeniorsOfCaregiver(
+    caregiverId: string,
+  ): Promise<Array<{
+    senior: Omit<User, 'passwordHash'>;
+    relationship: string;
+  }>> {
+    const caregiverRelations = await this.prisma.caregiverRelation.findMany({
+      where: {
+        caregiverId,
+        isActive: true,
+      },
+      include: {
+        senior: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+            emergencyContact: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
+
+    return caregiverRelations.map((relation) => ({
+      senior: relation.senior,
+      relationship: relation.relationship,
+    }));
   }
 }

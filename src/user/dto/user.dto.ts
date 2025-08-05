@@ -38,4 +38,12 @@ export class CreateCaregiverRelationDto {
   @IsString()
   @IsNotEmpty()
   relationship: string;
+
+  @IsString()
+  @IsNotEmpty()
+  phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  emergencyContact: string;
 }
