@@ -12,7 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from './user/user.module';
 import { MedicationsModule } from './medications/medications.module';
 import { SchedulesModule } from './schedules/schedules.module';
-
+import { NotificationsModule } from './notifications/notifications.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -36,6 +36,7 @@ import { SchedulesModule } from './schedules/schedules.module';
     UserModule,
     MedicationsModule,
     SchedulesModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

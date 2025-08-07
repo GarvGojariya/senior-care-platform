@@ -893,6 +893,658 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Notifications",
+			"item": [
+				{
+					"name": "Get User Notifications",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications?limit=50&offset=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get user's notifications with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications",
+								"{{notificationId}}"
+							]
+						},
+						"description": "Get specific notification details"
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}/confirm",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",								"{{notificationId}}",
+								"confirm"
+							]
+						},
+						"description": "Confirm a notification (Senior/Caregiver role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Logs (Admin Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/logs?limit=50&offset=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"logs"							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "offset",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get notification logs (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Notification Settings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"settings"
+							]						},
+						"description": "Get user's notification settings"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Notification Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"channel\": \"EMAIL\",\n  \"isEnabled\": true,\n  \"preferredTime\": \"09:00\",\n  \"timezone\": \"UTC\",\n  \"quietHoursStart\": \"22:00\",\n  \"quietHoursEnd\": \"08:00\",\n  \"maxNotificationsPerDay\": 10\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/settings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"settings"
+							]
+						},						"description": "Update user's notification settings"
+					},
+					"response": []
+				},
+				{
+					"name": "Test Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"channels\": [\"EMAIL\", \"PUSH\"],\n  \"title\": \"Test Notification\",\n  \"message\": \"This is a test notification\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/settings/test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"settings",
+								"test"
+							]
+						},						"description": "Send a test notification"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"stats"
+							]
+						},
+						"description": "Get user's notification statistics"
+					},					"response": []
+				},
+				{
+					"name": "Subscribe to Push Topic",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/subscribe/medication-reminders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",
+								"subscribe",
+								"medication-reminders"
+							]
+						},
+						"description": "Subscribe to push notification topic"					},
+					"response": []
+				},
+				{
+					"name": "Unsubscribe from Push Topic",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/unsubscribe/medication-reminders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",
+								"unsubscribe",
+								"medication-reminders"
+							]
+						},
+						"description": "Unsubscribe from push notification topic"
+					},					"response": []
+				},
+				{
+					"name": "Send Push to Topic (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Important Update\",\n  \"body\": \"Please check your medication schedule\",\n  \"data\": {\n    \"type\": \"medication_reminder\",\n    \"scheduleId\": \"{{scheduleId}}\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/topic/medication-reminders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",
+								"topic",
+								"medication-reminders"
+							]
+						},
+						"description": "Send push notification to topic (Admin role required)"
+					},
+					"response": []				},
+				{
+					"name": "Register FCM Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"fcm_token_here\",\n  \"deviceId\": \"device_123\",\n  \"deviceType\": \"android\",\n  \"appVersion\": \"1.0.0\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/register-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",
+								"register-token"
+							]
+						},
+						"description": "Register FCM token for push notifications"
+					},
+					"response": []
+				},
+				{					"name": "Unregister FCM Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"fcm_token_here\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/unregister-token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",
+								"unregister-token"
+							]
+						},
+						"description": "Unregister FCM token"
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Notifications as Read (Bulk)",					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notificationIds\": [\"notification_id_1\", \"notification_id_2\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/bulk/mark-read",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"bulk",
+								"mark-read"
+							]
+						},
+						"description": "Mark multiple notifications as read"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notifications (Bulk)",
+					"request": {						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"notificationIds\": [\"notification_id_1\", \"notification_id_2\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/bulk/delete",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"bulk",
+								"delete"
+							]
+						},
+						"description": "Delete multiple notifications"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Templates (Admin Only)",
+					"request": {
+						"method": "GET",						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/templates?type=MEDICATION_REMINDER&isActive=true",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"templates"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "MEDICATION_REMINDER"
+								},
+								{
+									"key": "isActive",
+									"value": "true"
+								}
+							]
+						},						"description": "Get notification templates (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Notification Template (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Medication Reminder Template\",\n  \"type\": \"MEDICATION_REMINDER\",\n  \"channel\": \"EMAIL\",\n  \"title\": \"Medication Reminder\",\n  \"content\": \"Hello {{userName}}, it's time to take your {{medicationName}}.\",\n  \"variables\": [\"userName\", \"medicationName\"],\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/templates",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"templates"
+							]
+						},
+						"description": "Create notification template (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Notification Template (Admin Only)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Medication Reminder\",\n  \"content\": \"Hello {{userName}}, please take your {{medicationName}} now.\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/templates/{{templateId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"templates",
+								"{{templateId}}"
+							]
+						},
+						"description": "Update notification template (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Notification Template (Admin Only)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/templates/{{templateId}}",							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"templates",
+								"{{templateId}}"
+							]
+						},
+						"description": "Delete notification template (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Analytics (Admin Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/analytics?startDate=2024-01-01&endDate=2024-12-31&type=MEDICATION_REMINDER",
+							"host": [								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"analytics"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								},
+								{
+									"key": "type",
+									"value": "MEDICATION_REMINDER"
+								}
+							]
+						},						"description": "Get notification analytics (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Preferences Summary",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/preferences/summary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"preferences",
+								"summary"
+							]
+						},
+						"description": "Get user's notification preferences summary"
+					},
+					"response": []
+				},
+				{
+					"name": "Reset Notification Settings",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/settings/reset",
+							"host": [
+								"{{baseUrl}}"
+							],							"path": [
+
+								"notifications",
+								"settings",
+								"reset"
+							]
+						},
+						"description": "Reset user's notification settings to defaults"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Delivery Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/{{notificationId}}/delivery-status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"notifications",
+								"{{notificationId}}",
+								"delivery-status"
+							]
+						},
+						"description": "Get notification delivery status with logs"
+					},
+					"response": []
+				},
+				{
+					"name": "Send Emergency Notification (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",							"raw": "{\n  \"userIds\": [\"user_id_1\", \"user_id_2\"],\n  \"title\": \"Emergency Alert\",\n  \"message\": \"Please check on your loved one immediately\",\n  \"priority\": \"URGENT\",\n  \"channels\": [\"PUSH\", \"SMS\", \"EMAIL\"]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/emergency",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"emergency"
+							]
+						},
+						"description": "Send emergency notification to multiple users (Admin role required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User FCM Tokens",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/push/tokens",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"push",								"tokens"
+							]
+						},
+						"description": "Get user's active FCM tokens"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Notification Channels Status (Admin Only)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/channels/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+
+								"notifications",
+								"channels",								"status"
+							]
+						},
+						"description": "Get notification channels status (Admin role required)"
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {
@@ -906,8 +1558,7 @@
 		]
 	},
 	"event": [
-		{
-			"listen": "prerequest",
+		{			"listen": "prerequest",
 			"script": {
 				"type": "text/javascript",
 				"exec": [
@@ -941,7 +1592,7 @@
 	"variable": [
 		{
 			"key": "baseUrl",
-			"value": "http://localhost:3000",
+			"value": "http://localhost:8081/api/v1",
 			"type": "string"
 		},
 		{
@@ -973,6 +1624,16 @@
 			"key": "seniorId",
 			"value": "cmdy6gm3n000043h3qkflsqc0",
 			"type": "default"
+		},
+		{
+			"key": "notificationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "templateId",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
