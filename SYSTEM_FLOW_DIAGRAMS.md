@@ -130,7 +130,6 @@ graph TD
     F --> G[Update Notification Status]
     G --> H[Wait for Next Check]
     
-    Note over I: Every Hour
     I[Cron Job - Every Hour] --> J[Find Seniors with Missed Doses]
     J --> K[Count Missed Doses per Medication]
     K --> L[Find Active Caregivers]
@@ -140,6 +139,9 @@ graph TD
     
     E --> H
     H --> O
+    
+    classDef cronJob fill:#e1f5fe
+    class A,I cronJob
 ```
 
 ## 5. Notification Channel Flow
