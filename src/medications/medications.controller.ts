@@ -12,19 +12,23 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { MedicationsService } from './medications.service';
-import { AuthenticatedRequest } from 'src/guard/auth.guard';
+import { AuthenticatedRequest, AuthGuard } from 'src/guard/auth.guard';
 import { AddMedicationDto, UpdateMedicationDto } from './dto/medications.dto';
 import {
   ResourceOwnership,
   ResourceOwnershipGuard,
 } from 'src/guard/resource-ownership.guard';
-import { Medication } from 'generated/prisma';
+import { RoleGuard } from 'src/guard/role.guard';
+import { Roles } from 'src/decorators/roles.decorators';
+import { Medication, Role } from 'generated/prisma';
 
+@UseGuards(AuthGuard, RoleGuard)
 @Controller('medications')
 export class MedicationsController {
   constructor(private readonly medicationsService: MedicationsService) {}
 
   @Post()
+  @Roles(Role.ADMIN, Role.CAREGIVER)
   @UseGuards(ResourceOwnershipGuard)
   @ResourceOwnership()
   async addMedication(
@@ -44,6 +48,7 @@ export class MedicationsController {
   }
 
   @Get()
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getMedications(
     @Req() req: AuthenticatedRequest,
     @Query()
@@ -67,6 +72,7 @@ export class MedicationsController {
   }
 
   @Get(':id')
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getMedicationById(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
@@ -81,6 +87,7 @@ export class MedicationsController {
   }
 
   @Put(':id')
+  @Roles(Role.ADMIN, Role.CAREGIVER)
   async updateMedication(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,
@@ -100,6 +107,7 @@ export class MedicationsController {
   }
 
   @Delete(':id')
+  @Roles(Role.ADMIN, Role.CAREGIVER)
   async deleteMedication(
     @Req() req: AuthenticatedRequest,
     @Param('id') id: string,

@@ -20,10 +20,11 @@ import {
 } from './dto/schedules.dto';
 import { AuthenticatedRequest, Public } from 'src/guard/auth.guard';
 import { AuthGuard } from 'src/guard/auth.guard';
+import { RoleGuard } from 'src/guard/role.guard';
 import { Roles } from 'src/decorators/roles.decorators';
 import { Role } from 'generated/prisma';
 
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RoleGuard)
 @Controller('schedules')
 export class SchedulesController {
   constructor(
@@ -66,6 +67,7 @@ export class SchedulesController {
   }
 
   @Get()
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getSchedulesWithFilters(
     @Query() query: GetSchedulesQueryDto,
     @Req() req: AuthenticatedRequest,
@@ -79,6 +81,7 @@ export class SchedulesController {
   }
 
   @Get('templates')
+  @Roles(Role.ADMIN, Role.CAREGIVER)
   async getScheduleTemplates() {
     const res = await this.schedulesService.getScheduleTemplates();
     return {
@@ -89,6 +92,7 @@ export class SchedulesController {
   }
 
   @Get('reminders/:userId')
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getNextReminders(
     @Param('userId') userId: string,
     @Req() req: AuthenticatedRequest,
@@ -107,6 +111,7 @@ export class SchedulesController {
   }
 
   @Get('medication/:medicationId')
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getSchedules(
     @Param('medicationId') medicationId: string,
     @Req() req: AuthenticatedRequest,
@@ -120,6 +125,7 @@ export class SchedulesController {
   }
 
   @Get(':id')
+  @Roles(Role.ADMIN, Role.CAREGIVER, Role.SENIOR)
   async getScheduleById(
     @Param('id') id: string,
     @Req() req: AuthenticatedRequest,
