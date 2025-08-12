@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node -r tsconfig-paths/register src/seeders/run-seeder.ts",
     "seed:dev": "ts-node -r tsconfig-paths/register src/seeders/run-seeder.ts --watch",
-    "seed:notifications": "ts-node -r tsconfig-paths/register src/seeders/notification-templates-seeder.ts"
+    "seed:notifications": "ts-node -r tsconfig-paths/register src/seeders/notification-templates-seeder.ts",
+    "update-schedules": "ts-node -r tsconfig-paths/register src/seeders/update-existing-schedules.ts"
   },
   "dependencies": {
     "@nestjs/bull": "^11.0.3",

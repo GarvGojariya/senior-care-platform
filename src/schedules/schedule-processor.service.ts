@@ -2,15 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../services/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
-import {
-  NotificationStatus,
-  DaysOfWeek,
-} from 'generated/prisma';
+import { NotificationStatus, DaysOfWeek } from 'generated/prisma';
 
 @Injectable()
 export class ScheduleProcessorService {
   private readonly logger = new Logger(ScheduleProcessorService.name);
-
   constructor(
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationService,
@@ -23,13 +19,11 @@ export class ScheduleProcessorService {
   @Cron(CronExpression.EVERY_MINUTE)
   async processMedicationSchedules() {
     try {
-      this.logger.log('🕐 Processing medication schedules...');
-      
+      this.logger.log(`🕐 Processing medication schedules...`);
+
       const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
       const currentDay = this.getCurrentDayOfWeek();
 
-      // Find active schedules that need notifications
       const schedulesToProcess = await this.prisma.schedule.findMany({
         where: {
           isActive: true,
@@ -55,8 +49,9 @@ export class ScheduleProcessorService {
               },
             },
           ],
+          // Include both PENDING and SENT status when next notification is due
           notificationStatus: {
-            not: NotificationStatus.SENT,
+            in: [NotificationStatus.PENDING, NotificationStatus.SENT],
           },
         },
         include: {
@@ -68,13 +63,18 @@ export class ScheduleProcessorService {
         },
       });
 
-      this.logger.log(`Found ${schedulesToProcess.length} schedules to process`);
+      this.logger.log(
+        `Found ${schedulesToProcess.length} schedules to process`,
+      );
 
       for (const schedule of schedulesToProcess) {
         try {
           await this.processSchedule(schedule, now);
         } catch (error) {
-          this.logger.error(`Failed to process schedule ${schedule.id}:`, error);
+          this.logger.error(
+            `Failed to process schedule ${schedule.id}:`,
+            error,
+          );
         }
       }
     } catch (error) {
@@ -89,7 +89,7 @@ export class ScheduleProcessorService {
   async checkForMissedDoses() {
     try {
       this.logger.log('🔍 Checking for missed doses...');
-      
+
       const now = new Date();
       const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
 
@@ -118,7 +118,9 @@ export class ScheduleProcessorService {
         },
       });
 
-      this.logger.log(`Found ${missedSchedules.length} potentially missed doses`);
+      this.logger.log(
+        `Found ${missedSchedules.length} potentially missed doses`,
+      );
 
       for (const schedule of missedSchedules) {
         try {
@@ -127,7 +129,10 @@ export class ScheduleProcessorService {
             await this.handleMissedDose(schedule, now);
           }
         } catch (error) {
-          this.logger.error(`Failed to handle missed dose for schedule ${schedule.id}:`, error);
+          this.logger.error(
+            `Failed to handle missed dose for schedule ${schedule.id}:`,
+            error,
+          );
         }
       }
     } catch (error) {
@@ -142,7 +147,7 @@ export class ScheduleProcessorService {
   async processEscalationAlerts() {
     try {
       this.logger.log('🚨 Processing escalation alerts...');
-      
+
       const now = new Date();
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
@@ -195,13 +200,18 @@ export class ScheduleProcessorService {
         },
       });
 
-      this.logger.log(`Found ${seniorsWithMissedDoses.length} seniors with missed doses`);
+      this.logger.log(
+        `Found ${seniorsWithMissedDoses.length} seniors with missed doses`,
+      );
 
       for (const senior of seniorsWithMissedDoses) {
         try {
           await this.handleEscalationAlert(senior, now);
         } catch (error) {
-          this.logger.error(`Failed to handle escalation alert for senior ${senior.id}:`, error);
+          this.logger.error(
+            `Failed to handle escalation alert for senior ${senior.id}:`,
+            error,
+          );
         }
       }
     } catch (error) {
@@ -215,7 +225,18 @@ export class ScheduleProcessorService {
   private async processSchedule(schedule: any, now: Date) {
     const { medication } = schedule;
     const scheduledTime = this.calculateScheduledTime(schedule, now);
-    
+
+    // If this schedule was previously SENT, reset it to PENDING for the new notification
+    if (schedule.notificationStatus === NotificationStatus.SENT) {
+      await this.prisma.schedule.update({
+        where: { id: schedule.id },
+        data: {
+          notificationStatus: NotificationStatus.PENDING,
+        },
+      });
+      this.logger.log(`🔄 Reset notification status to PENDING for schedule ${schedule.id}`);
+    }
+
     // Send medication reminder
     const result = await this.notificationService.sendMedicationReminder(
       schedule.id,
@@ -224,8 +245,11 @@ export class ScheduleProcessorService {
 
     if (result.success) {
       // Calculate next notification time
-      const nextNotificationTime = this.calculateNextNotificationTime(schedule, now);
-      
+      const nextNotificationTime = this.calculateNextNotificationTime(
+        schedule,
+        now,
+      );
+
       // Update schedule
       await this.prisma.schedule.update({
         where: { id: schedule.id },
@@ -236,10 +260,15 @@ export class ScheduleProcessorService {
         },
       });
 
-      this.logger.log(`✅ Sent medication reminder for schedule ${schedule.id}`);
+      this.logger.log(
+        `✅ Sent medication reminder for schedule ${schedule.id}`,
+      );
     } else {
-      this.logger.error(`❌ Failed to send medication reminder for schedule ${schedule.id}:`, result.errors);
-      
+      this.logger.error(
+        `❌ Failed to send medication reminder for schedule ${schedule.id}:`,
+        result.errors,
+      );
+
       // Update schedule with failed status
       await this.prisma.schedule.update({
         where: { id: schedule.id },
@@ -255,7 +284,7 @@ export class ScheduleProcessorService {
    */
   private async handleMissedDose(schedule: any, now: Date) {
     const scheduledTime = this.calculateScheduledTime(schedule, now);
-    
+
     // Send missed dose alert
     const result = await this.notificationService.sendMissedDoseAlert(
       schedule.id,
@@ -265,7 +294,10 @@ export class ScheduleProcessorService {
     if (result.success) {
       this.logger.log(`✅ Sent missed dose alert for schedule ${schedule.id}`);
     } else {
-      this.logger.error(`❌ Failed to send missed dose alert for schedule ${schedule.id}:`, result.errors);
+      this.logger.error(
+        `❌ Failed to send missed dose alert for schedule ${schedule.id}:`,
+        result.errors,
+      );
     }
   }
 
@@ -278,7 +310,7 @@ export class ScheduleProcessorService {
 
     for (const medication of senior.medications) {
       const missedCount = medication.schedules.filter(
-        (schedule: any) => schedule.confirmations.length === 0
+        (schedule: any) => schedule.confirmations?.length === 0,
       ).length;
 
       if (missedCount > 0) {
@@ -294,8 +326,10 @@ export class ScheduleProcessorService {
         missedCount,
       );
 
-      const successCount = results.filter(result => result.success).length;
-      this.logger.log(`✅ Sent ${successCount}/${results.length} escalation alerts for ${medicationName}`);
+      const successCount = results.filter((result) => result.success).length;
+      this.logger.log(
+        `✅ Sent ${successCount}/${results.length} escalation alerts for ${medicationName}`,
+      );
     }
   }
 
@@ -306,12 +340,12 @@ export class ScheduleProcessorService {
     const [hours, minutes] = schedule.time.split(':').map(Number);
     const scheduledTime = new Date(now);
     scheduledTime.setHours(hours, minutes, 0, 0);
-    
+
     // If the scheduled time has passed today, it's for tomorrow
     if (scheduledTime <= now) {
       scheduledTime.setDate(scheduledTime.getDate() + 1);
     }
-    
+
     return scheduledTime;
   }
 
@@ -321,10 +355,12 @@ export class ScheduleProcessorService {
   private calculateNextNotificationTime(schedule: any, now: Date): Date {
     const reminderMinutes = schedule.reminderMinutesBefore || 15;
     const scheduledTime = this.calculateScheduledTime(schedule, now);
-    
+
     const nextNotificationTime = new Date(scheduledTime);
-    nextNotificationTime.setMinutes(nextNotificationTime.getMinutes() - reminderMinutes);
-    
+    nextNotificationTime.setMinutes(
+      nextNotificationTime.getMinutes() - reminderMinutes,
+    );
+
     return nextNotificationTime;
   }
 
@@ -332,7 +368,15 @@ export class ScheduleProcessorService {
    * Get current day of week as DaysOfWeek enum
    */
   private getCurrentDayOfWeek(): DaysOfWeek {
-    const days = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+    const days = [
+      'SUNDAY',
+      'MONDAY',
+      'TUESDAY',
+      'WEDNESDAY',
+      'THURSDAY',
+      'FRIDAY',
+      'SATURDAY',
+    ];
     return days[new Date().getDay()] as DaysOfWeek;
   }
 
@@ -359,4 +403,4 @@ export class ScheduleProcessorService {
     this.logger.log('🔄 Manually triggering escalation alert processing...');
     await this.processEscalationAlerts();
   }
-} 
+}

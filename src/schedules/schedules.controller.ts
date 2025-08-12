@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
+import { ScheduleProcessorService } from './schedule-processor.service';
 import {
   CreateScheduleDto,
   UpdateScheduleDto,
@@ -25,7 +26,10 @@ import { Role } from 'generated/prisma';
 @UseGuards(AuthGuard)
 @Controller('schedules')
 export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) {}
+  constructor(
+    private readonly schedulesService: SchedulesService,
+    private readonly scheduleProcessorService: ScheduleProcessorService,
+  ) {}
 
   @Post()
   @Roles(Role.CAREGIVER, Role.ADMIN)
@@ -171,6 +175,69 @@ export class SchedulesController {
     return {
       message: res.message,
       success: res.success,
+    };
+  }
+
+  // Test endpoints for debugging cron jobs
+  @Post('test/process-schedules')
+  @Public()
+  async testProcessSchedules() {
+    await this.scheduleProcessorService.triggerScheduleProcessing();
+    return {
+      message: 'Schedule processing triggered manually',
+      success: true,
+    };
+  }
+
+  @Post('test/check-missed-doses')
+  @Public()
+  async testCheckMissedDoses() {
+    await this.scheduleProcessorService.triggerMissedDoseCheck();
+    return {
+      message: 'Missed dose check triggered manually',
+      success: true,
+    };
+  }
+
+  @Post('test/process-escalations')
+  @Public()
+  async testProcessEscalations() {
+    await this.scheduleProcessorService.triggerEscalationAlertProcessing();
+    return {
+      message: 'Escalation processing triggered manually',
+      success: true,
+    };
+  }
+
+  // Migration endpoint for existing schedules
+  @Post('migrate/update-notification-times')
+  @Public()
+  async updateExistingSchedules() {
+    const result = await this.schedulesService.updateExistingSchedulesWithNotificationTimes();
+    return {
+      message: 'Existing schedules updated with notification times',
+      data: result,
+      success: result.success,
+    };
+  }
+
+  @Get('migrate/schedules-needing-update')
+  @Public()
+  async getSchedulesNeedingUpdate() {
+    const schedules = await this.schedulesService.getSchedulesNeedingUpdate();
+    return {
+      message: 'Schedules needing update retrieved',
+      data: {
+        count: schedules.length,
+        schedules: schedules.map(s => ({
+          id: s.id,
+          medicationName: s.medication.name,
+          time: s.time,
+          isActive: s.isActive,
+          nextNotificationDue: s.nextNotificationDue,
+        })),
+      },
+      success: true,
     };
   }
 }

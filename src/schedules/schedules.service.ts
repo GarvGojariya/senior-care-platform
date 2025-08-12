@@ -83,10 +83,19 @@ export class SchedulesService {
     // Check for schedule conflicts
     await this.checkScheduleConflicts(scheduleDetails, medication.userId);
 
+    // Calculate next notification time
+    const now = new Date();
+    const nextNotificationTime = this.calculateNextNotificationTime({
+      ...scheduleDetails,
+      doseTimes: scheduleDetails.doseTimes,
+      reminderMinutesBefore: scheduleDetails.reminderMinutesBefore || 15
+    }, now);
+
     const scheduleData = {
       ...scheduleDetails,
       doseTimes: scheduleDetails.doseTimes as any, // Store as JSON
       time: scheduleDetails.doseTimes[0]?.time || '00:00', // Legacy field
+      nextNotificationDue: nextNotificationTime,
     };
 
     const schedule = await this.prisma.schedule.create({
@@ -362,10 +371,23 @@ export class SchedulesService {
       );
     }
 
+    // Calculate next notification time if schedule details changed
+    let nextNotificationTime = schedule.nextNotificationDue;
+    if (scheduleDetails.doseTimes || scheduleDetails.reminderMinutesBefore !== undefined) {
+      const now = new Date();
+      nextNotificationTime = this.calculateNextNotificationTime({
+        ...schedule,
+        ...scheduleDetails,
+        doseTimes: scheduleDetails.doseTimes || schedule.doseTimes,
+        reminderMinutesBefore: scheduleDetails.reminderMinutesBefore ?? schedule.reminderMinutesBefore
+      }, now);
+    }
+
     const updateData = {
       ...scheduleDetails,
       doseTimes: scheduleDetails.doseTimes as any,
-      time: scheduleDetails.doseTimes?.[0]?.time || schedule.time
+      time: scheduleDetails.doseTimes?.[0]?.time || schedule.time,
+      nextNotificationDue: nextNotificationTime
     };
 
     const updatedSchedule = await this.prisma.schedule.update({
@@ -486,11 +508,20 @@ export class SchedulesService {
       throw new NotFoundException('Schedule not found');
     }
 
+    // If activating the schedule, recalculate next notification time
+    let updateData: any = {
+      isActive: !schedule.isActive
+    };
+
+    if (!schedule.isActive) { // Activating the schedule
+      const now = new Date();
+      const nextNotificationTime = this.calculateNextNotificationTime(schedule, now);
+      updateData.nextNotificationDue = nextNotificationTime;
+    }
+
     const updatedSchedule = await this.prisma.schedule.update({
       where: whereClause,
-      data: {
-        isActive: !schedule.isActive
-      },
+      data: updateData,
       include: {
         medication: {
           include: {
@@ -507,6 +538,86 @@ export class SchedulesService {
     });
 
     return updatedSchedule;
+  }
+
+  /**
+   * Update existing schedules with calculated nextNotificationDue
+   * This should be run once to fix existing schedules
+   */
+  async updateExistingSchedulesWithNotificationTimes() {
+    try {
+      // Find all active schedules without nextNotificationDue
+      const existingSchedules = await this.prisma.schedule.findMany({
+        where: {
+          isActive: true,
+          nextNotificationDue: null,
+        },
+        include: {
+          medication: true,
+        },
+      });
+
+      console.log(`Found ${existingSchedules.length} existing schedules to update`);
+
+      const updatedSchedules: any[] = [];
+      const errors: any[] = [];
+
+      for (const schedule of existingSchedules) {
+        try {
+          const now = new Date();
+          const nextNotificationTime = this.calculateNextNotificationTime(schedule, now);
+
+          const updatedSchedule = await this.prisma.schedule.update({
+            where: { id: schedule.id },
+            data: {
+              nextNotificationDue: nextNotificationTime,
+            },
+          });
+
+          updatedSchedules.push(updatedSchedule);
+          console.log(`✅ Updated schedule ${schedule.id} with nextNotificationDue: ${nextNotificationTime}`);
+        } catch (error) {
+          console.error(`❌ Failed to update schedule ${schedule.id}:`, error);
+          errors.push({ scheduleId: schedule.id, error: error.message });
+        }
+      }
+
+      return {
+        total: existingSchedules.length,
+        updated: updatedSchedules.length,
+        errors: errors.length,
+        success: errors.length === 0,
+        errorDetails: errors,
+      };
+    } catch (error) {
+      console.error('Failed to update existing schedules:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get schedules that need nextNotificationDue calculation
+   */
+  async getSchedulesNeedingUpdate() {
+    return await this.prisma.schedule.findMany({
+      where: {
+        isActive: true,
+        nextNotificationDue: null,
+      },
+      include: {
+        medication: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   // Private helper methods
@@ -638,5 +749,34 @@ export class SchedulesService {
       DaysOfWeek.SATURDAY
     ];
     return days[date.getDay()];
+  }
+
+  /**
+   * Calculate the scheduled time for a medication
+   */
+  private calculateScheduledTime(schedule: any, now: Date): Date {
+    const [hours, minutes] = schedule.time.split(':').map(Number);
+    const scheduledTime = new Date(now);
+    scheduledTime.setHours(hours, minutes, 0, 0);
+    
+    // If the scheduled time has passed today, it's for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+    
+    return scheduledTime;
+  }
+
+  /**
+   * Calculate the next notification time for a schedule
+   */
+  private calculateNextNotificationTime(schedule: any, now: Date): Date {
+    const reminderMinutes = schedule.reminderMinutesBefore || 15;
+    const scheduledTime = this.calculateScheduledTime(schedule, now);
+    
+    const nextNotificationTime = new Date(scheduledTime);
+    nextNotificationTime.setMinutes(nextNotificationTime.getMinutes() - reminderMinutes);
+    
+    return nextNotificationTime;
   }
 }
