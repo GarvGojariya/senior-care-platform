@@ -1,11 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { PrismaService } from './prisma.service';
+
+interface UserInfo {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
 
 @Injectable()
 export class EmailService {
   private transporter: nodemailer.Transporter;
 
-  constructor() {
+  constructor(private readonly prismaService: PrismaService) {
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
@@ -58,6 +66,7 @@ export class EmailService {
       // Get user details from database
       const user = await this.getUserById(userId);
       if (!user) {
+        console.warn(`User not found for medication reminder: ${userId}`);
         return { success: false, error: 'User not found' };
       }
 
@@ -70,6 +79,7 @@ export class EmailService {
       };
 
       await this.transporter.sendMail(mailOptions);
+      console.log(`Medication reminder email sent successfully to user: ${userId}`);
       return { success: true };
     } catch (error) {
       console.error('Failed to send medication reminder email:', error);
@@ -77,15 +87,34 @@ export class EmailService {
     }
   }
 
-  private async getUserById(userId: string) {
-    // This is a placeholder - in a real implementation, you'd inject PrismaService
-    // For now, we'll return a mock user to avoid circular dependencies
-    return {
-      id: userId,
-      email: 'user@example.com',
-      firstName: 'User',
-      lastName: 'Name',
-    };
+  private async getUserById(userId: string): Promise<UserInfo | null> {
+    try {
+      if (!userId) {
+        console.warn('getUserById called with empty userId');
+        return null;
+      }
+
+      const user = await this.prismaService.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+      
+      if (!user) {
+        console.warn(`User not found with ID: ${userId}`);
+        return null;
+      }
+
+      console.log(`Successfully fetched user: ${user.email} (${user.firstName} ${user.lastName})`);
+      return user;
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      throw new Error('Failed to fetch user information');
+    }
   }
 
   private getPasswordResetEmailTemplate(firstName: string, otp: string): string {

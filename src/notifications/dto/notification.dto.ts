@@ -88,8 +88,8 @@ export class RegisterFCMTokenDto {
   deviceId?: string;
 
   @IsOptional()
-  @IsIn(['android', 'ios', 'web'])
-  deviceType?: 'android' | 'ios' | 'web';
+  @IsIn(['ANDROID', 'IOS', 'WEB'])
+  deviceType?: 'ANDROID' | 'IOS' | 'WEB';
 
   @IsOptional()
   @IsString()

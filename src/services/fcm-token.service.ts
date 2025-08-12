@@ -5,7 +5,7 @@ export interface FCMTokenData {
   userId: string;
   token: string;
   deviceId?: string;
-  deviceType?: 'android' | 'ios' | 'web';
+  deviceType?: 'ANDROID' | 'IOS' | 'WEB';
   appVersion?: string;
   isActive: boolean;
 }
@@ -21,6 +21,33 @@ export class FCMTokenService {
    */
   async storeToken(tokenData: FCMTokenData): Promise<boolean> {
     try {
+      // Check if the token already exists
+      const existingToken = await this.prisma.fCMToken.findUnique({
+        where: {
+          token: tokenData.token,
+        },
+      });
+
+      if (existingToken) {
+        // If token exists, update it with new user data and reactivate it
+        await this.prisma.fCMToken.update({
+          where: {
+            token: tokenData.token,
+          },
+          data: {
+            userId: tokenData.userId,
+            deviceId: tokenData.deviceId,
+            deviceType: tokenData.deviceType,
+            appVersion: tokenData.appVersion,
+            isActive: true,
+            updatedAt: new Date(),
+          },
+        });
+
+        this.logger.log(`FCM token updated for user: ${tokenData.userId}`);
+        return true;
+      }
+
       // First, deactivate any existing tokens for this user and device
       await this.prisma.fCMToken.updateMany({
         where: {

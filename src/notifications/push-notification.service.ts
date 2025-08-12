@@ -48,7 +48,7 @@ export class PushNotificationService {
       const serviceAccount = this.configService.get('FIREBASE_SERVICE_ACCOUNT');
       
       if (serviceAccount) {
-        // Use service account JSON
+        // Use service account JSON from environment variable
         const serviceAccountJson = JSON.parse(serviceAccount);
         this.firebaseApp = admin.initializeApp({
           credential: admin.credential.cert(serviceAccountJson),
